@@ -30,11 +30,9 @@ public class GoogleOTPUtil {
      *
      * @param userName 사용자 이름
      * @param hostName host 이름
-     * @return <PRE>
-     * HashMap&lt;String, String&gt;
+     * @return HashMap&lt;String, String&gt;
      * map.put("encodedKey", encodedKey);
      * map.put("url", url);
-     * </PRE>
      * @throws java.security.InvalidKeyException
      */
     public static final HashMap<String, String> generate(final String userName, final String hostName) throws InvalidKeyException {
