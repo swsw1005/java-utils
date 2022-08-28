@@ -12,7 +12,7 @@ import java.util.Calendar;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CertDateUtil {
 
-    public static final Calendar[] GET_CERT_DATE(final String domain) throws IOException {
+    public static final Calendar[] getCertDates(final String domain) throws IOException {
         try {
             SSLCertCheckUtils.CertInfo var1 = SSLCertCheckUtils.sslCheck(domain);
             return new Calendar[]{var1.getBefore(), var1.getAfter()};

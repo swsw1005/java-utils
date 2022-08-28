@@ -1,7 +1,8 @@
 package kr.swim.util.mail;
 
 import java.io.File;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 public class EmailSend {
 
@@ -24,12 +25,9 @@ public class EmailSend {
      * @param recipientTypeBCC 숨은참조 이메일 목록
      * @param title            제목
      * @param body             본문내용
-     * @param bodyType         본문 타입
-     *                         {@link EmailBodyType}
      * @param files            첨부파일 목록
      * @throws EmailSendException
      */
-    @Deprecated
     public static void sendMultipartMail(
             final String smtpUser,
             final String smtpPassword,
@@ -42,10 +40,9 @@ public class EmailSend {
             Set<String> recipientTypeBCC,
             String title,
             String body,
-            EmailBodyType bodyType,
             List<File> files) throws EmailSendException {
         sendMultipartMail(smtpUser, smtpPassword, smtpHost, smtpPort, authEnable, sslEnable, null, recipientTypeTO,
-                recipientTypeCC, recipientTypeBCC, title, body, bodyType, files);
+                recipientTypeCC, recipientTypeBCC, title, body, files);
     }
 
     /**
@@ -66,12 +63,9 @@ public class EmailSend {
      * @param recipientTypeBCC 숨은참조 이메일 목록
      * @param title            제목
      * @param body             본문내용
-     * @param bodyType         본문 타입
-     *                         {@link EmailBodyType}
      * @param files            첨부파일 목록
      * @throws EmailSendException
      */
-    @Deprecated
     public static void sendMultipartMail(
             final String smtpUser,
             final String smtpPassword,
@@ -85,10 +79,9 @@ public class EmailSend {
             Set<String> recipientTypeBCC,
             String title,
             String body,
-            EmailBodyType bodyType,
             List<File> files) throws EmailSendException {
 
-        EmailSender emailSender = new EmailSender();
+        EmailSender emailSender = EmailSenderFactory.SimpleSmtpWithoutAuth();
 
         emailSender.setSmtpHost(smtpHost);
         emailSender.setSmtpUser(smtpUser);
@@ -97,7 +90,6 @@ public class EmailSend {
 
         emailSender.setTitle(title);
         emailSender.setBody(body);
-        emailSender.setBodyType(bodyType);
 
         if (authEnable != null) {
             emailSender.setAuthEnable(authEnable);

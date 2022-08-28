@@ -9,13 +9,13 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.security.InvalidParameterException;
 import java.util.*;
 
@@ -24,17 +24,22 @@ import java.util.*;
  * <p>
  * ex)
  * <PRE>
- * EmailSender emailSender = new EmailSender();
+ * EmailSender emailSender = EmailSenderFactory.***
+ * {@link kr.swim.util.mail.EmailSenderFactory}
+ * <p>
  * emailSender.setTitle(title);
+ * emailSender.setBody(body);
  * .
  * . (set other params)
  * .
  * emailSender.send();
  *
+ *
+ *
  * </PRE>
  */
 @Getter
-@Setter
+@Builder
 public class EmailSender {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger("EmailSender");
@@ -45,20 +50,32 @@ public class EmailSender {
     public static final int DEFAULT_IMPLIED_SSL_PORT = 465;
     public static final int DEFAULT_EXPLICIT_SSL_PORT = 587;
 
-    private String smtpUser = null;
-    private String smtpPassword = null;
-    private String smtpHost = null;
-    private int smtpPort = 25;
-    private boolean authEnable = false;
-    private boolean sslEnable = false;
-    private boolean tlsEnable = false;
-   public final Set<String> recipientTypeTO = new HashSet<>();
+    @Setter
+    private String smtpUser;
+    @Setter
+    private String smtpPassword;
+    @Setter
+    private String smtpHost;
+    @Setter
+    private int smtpPort;
+    @Setter
+    private boolean authEnable;
+    @Setter
+    private boolean sslEnable;
+    @Setter
+    private boolean tlsEnable;
+    @Builder.Default
+    public final Set<String> recipientTypeTO = new HashSet<>();
+    @Builder.Default
     public final Set<String> recipientTypeCC = new HashSet<>();
+    @Builder.Default
     public final Set<String> recipientTypeBCC = new HashSet<>();
+    @Setter
     String title = "";
+    @Setter
     String body = "";
-    EmailBodyType bodyType = EmailBodyType.text;
-    final List<File> files = new ArrayList<>();
+    @Builder.Default
+    public final List<File> files = new ArrayList<>();
 
     private void validate() {
         if (title == null || title.isEmpty()) {
@@ -73,10 +90,6 @@ public class EmailSender {
         if (body == null || body.isEmpty()) {
             log.warn("mail body is null ... set empty body");
             body = "";
-        }
-        if (bodyType == null) {
-            log.warn("EmailBodyType is null ... set Default");
-            bodyType = EmailBodyType.text;
         }
         if (recipientTypeTO.isEmpty()) {
             throw new InvalidParameterException("empty TO email ... ");
@@ -119,6 +132,7 @@ public class EmailSender {
             log.debug("send mail... " + smtpUser + " [ " + smtpHost + " : " + smtpPort + " ] " + new Gson().toJson(prop));
 
             Session session = Session.getInstance(prop, new Authenticator() {
+                @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
                     return new PasswordAuthentication(smtpUser, smtpPassword);
                 }
@@ -127,9 +141,6 @@ public class EmailSender {
             if (smtpUser == null || smtpPassword == null || smtpUser.isEmpty() || smtpPassword.isEmpty()) {
                 session = Session.getInstance(prop);
             }
-
-            // Authenticator auth = Authentica
-            // Session session = Session.getDefaultInstance(prop, auth);
 
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(smtpUser));
@@ -160,7 +171,7 @@ public class EmailSender {
                     ccInternetAddress[ccCnt] = temp;
                     ccCnt++;
                 }
-                message.addRecipients(Message.RecipientType.TO, ccInternetAddress);
+                message.addRecipients(Message.RecipientType.CC, ccInternetAddress);
             }
             if (recipientTypeBCC != null) {
                 bccInternetAddress = new InternetAddress[recipientTypeBCC.size()];
@@ -178,7 +189,7 @@ public class EmailSender {
             // Subject
             message.setSubject(title, UTF8);
             // Text
-            message.setText(body, UTF8, bodyType.name());
+            message.setText(body, UTF8, "html");
 
             if (!files.isEmpty()) {
 
@@ -192,8 +203,7 @@ public class EmailSender {
                         throw new FileNotFoundException(file.getAbsolutePath());
                     }
 
-                    String htmlBody = ""; // ...
-                    byte[] attachmentData = Files.readAllBytes(file.toPath());
+                    String htmlBody = "";
 
                     MimeBodyPart htmlPart = new MimeBodyPart();
                     htmlPart.setContent(htmlBody, "text/html");
@@ -220,7 +230,7 @@ public class EmailSender {
             throw new EmailSendException("이메일 발송 실패 " + e + "  " + e.getMessage());
         } catch (Exception e) {
             log.error(e + "  " + e.getMessage() + "  title : " + title, e);
-            throw new EmailSendException("이메일 발송 실패 " + e + "  " + e.getMessage());
+            throw new EmailSendException(e);
         }
 
     }
