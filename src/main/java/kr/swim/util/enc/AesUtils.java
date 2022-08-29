@@ -33,6 +33,7 @@ public class AesUtils {
 
     private static final boolean isDebug = log.isDebugEnabled();
 
+    private static byte[] ivBytes = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
     /**
      * <PRE>
@@ -49,7 +50,7 @@ public class AesUtils {
         if (isDebug) {
             log.debug("encrypt | str ");
         }
-        return encrypt(str, ENC_KEY, generateIvFromString(ENC_KEY));
+        return encrypt(str, ENC_KEY);
     }
 
     /**
@@ -67,7 +68,7 @@ public class AesUtils {
         if (isDebug) {
             log.debug("encrypt | str | key");
         }
-        return encrypt(str, key, generateIvFromString(key));
+        return encrypt(str, key, ivBytes);
     }
 
     /**
@@ -139,7 +140,7 @@ public class AesUtils {
         if (isDebug) {
             log.debug("decrypt | str");
         }
-        return decrypt(str, ENC_KEY, generateIvFromString(ENC_KEY));
+        return decrypt(str, ENC_KEY);
     }
 
 
@@ -158,7 +159,7 @@ public class AesUtils {
         if (isDebug) {
             log.debug("decrypt | str | key");
         }
-        return decrypt(str, key, generateIvFromString(key));
+        return decrypt(str, key, ivBytes);
     }
 
 
