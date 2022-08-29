@@ -6,7 +6,7 @@
 
     <groupId>io.github.swsw1005</groupId>
     <artifactId>java-utils</artifactId>
-    <version>1.1.0-SNAPSHOTS</version>
+    <version>1.1.1-SNAPSHOTS</version>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>
         JAVA Util Package for web developers
