@@ -1,14 +1,16 @@
 package kr.swim.util.mail;
 
 import com.google.gson.Gson;
-import jakarta.activation.DataHandler;
-import jakarta.activation.DataSource;
-import jakarta.activation.FileDataSource;
-import jakarta.mail.*;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeBodyPart;
-import jakarta.mail.internet.MimeMessage;
-import jakarta.mail.internet.MimeMultipart;
+
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -59,11 +61,11 @@ public class EmailSender {
     @Setter
     private int smtpPort;
     @Setter
-    private boolean authEnable;
+    private boolean authEnable = false;
     @Setter
-    private boolean sslEnable;
+    private boolean sslEnable = false;
     @Setter
-    private boolean tlsEnable;
+    private boolean tlsEnable = false;
     @Builder.Default
     public final Set<String> recipientTypeTO = new HashSet<>();
     @Builder.Default
