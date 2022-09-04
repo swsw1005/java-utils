@@ -79,31 +79,8 @@ public class SSLCertCheckUtils {
             Date beforeDate = serverCert.getNotBefore();
             Date afterDate = serverCert.getNotAfter();
 
-            int var1 = serverCert.getBasicConstraints();
-            int var2 = serverCert.getVersion();
-            List<String> var3 = serverCert.getExtendedKeyUsage();
-            Collection<List<?>> var4 = serverCert.getIssuerAlternativeNames();
-            List<List<?>> var44 = new ArrayList<>(var4);
-            BigInteger var5 = serverCert.getSerialNumber();
-            String var6 = serverCert.getSigAlgName();
-            String var7 = serverCert.getSigAlgOID();
-            byte[] var8 = serverCert.getSignature();
-            String var9 = serverCert.getType();
-
-            Principal var10 = serverCert.getSubjectDN();
-            X500Principal var11 = serverCert.getIssuerX500Principal();
-            X500Principal var12 = serverCert.getSubjectX500Principal();
 
             CertInfo certInfo = new CertInfo();
-
-            certInfo.setBasicConstraints(var1);
-            certInfo.setVersion(var2);
-            certInfo.setExtendedKeyUsage(var3);
-            certInfo.setSerialNumber(var5);
-            certInfo.setSigAlgName(var6);
-            certInfo.setSigAlgOID(var7);
-            certInfo.setSignature(var8);
-            certInfo.setType(var9);
 
             TimeZone tz = TimeZone.getDefault();
 
@@ -116,13 +93,52 @@ public class SSLCertCheckUtils {
             certInfo.setBefore(beforeCal);
             certInfo.setAfter(afterCal);
 
+
+            int var1 = serverCert.getBasicConstraints();
+            certInfo.setBasicConstraints(var1);
+
+
+            int var2 = serverCert.getVersion();
+            certInfo.setVersion(var2);
+
+
+            List<String> var3 = serverCert.getExtendedKeyUsage();
+            certInfo.setExtendedKeyUsage(var3);
+
+
+            BigInteger var5 = serverCert.getSerialNumber();
+            certInfo.setSerialNumber(var5);
+
+
+            String var6 = serverCert.getSigAlgName();
+            certInfo.setSigAlgName(var6);
+
+
+            String var7 = serverCert.getSigAlgOID();
+            certInfo.setSigAlgOID(var7);
+
+
+            byte[] var8 = serverCert.getSignature();
+            certInfo.setSignature(var8);
+
+
+            String var9 = serverCert.getType();
+            certInfo.setType(var9);
+
+
+            Principal var10 = serverCert.getSubjectDN();
             certInfo.setSubjectDN(var10.getName());
 
+
+            X500Principal var11 = serverCert.getIssuerX500Principal();
             certInfo.setIssuerX500PrincipalName(var11.getName());
             certInfo.setIssuerX500Principal(var11.toString());
 
+
+            X500Principal var12 = serverCert.getSubjectX500Principal();
             certInfo.setSubjectX500PrincipalName(var12.getName());
             certInfo.setSubjectX500Principal(var12.toString());
+
 
             return certInfo;
 
@@ -143,21 +159,22 @@ public class SSLCertCheckUtils {
     @Getter
     @Setter
     public static class CertInfo {
-        private int basicConstraints;
-        private int version;
-        private List<String> extendedKeyUsage;
-        private BigInteger serialNumber;
-        private String sigAlgName;
-        private String sigAlgOID;
-        private byte[] signature;
-        private String type;
-        private Calendar before;
-        private Calendar after;
-        private String subjectDN;
-        private String issuerX500PrincipalName;
-        private String issuerX500Principal;
-        private String subjectX500PrincipalName;
-        private String subjectX500Principal;
+        private int basicConstraints = -1;
+        private int version = -1;
+        private List<String> extendedKeyUsage = new ArrayList<>();
+        private BigInteger serialNumber = BigInteger.valueOf(-1);
+        private String sigAlgName = "";
+        private String sigAlgOID = "";
+        private byte[] signature = new byte[1];
+        private String type = "";
+        private Calendar before = null;
+        private Calendar after = null;
+        private String subjectDN = "";
+        private String issuerX500PrincipalName = "";
+        private String issuerX500Principal = "";
+        private String subjectX500PrincipalName = "";
+        private String subjectX500Principal = "";
+
 
     }
 

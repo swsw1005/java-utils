@@ -38,7 +38,7 @@ public class AesTest {
 
         final String filePath = "/usr/local/aesTest.txt";
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 2; i++) {
 
             log.debug("=== " + i + " ===========================================");
 
@@ -52,15 +52,9 @@ public class AesTest {
                 String temp = null;
                 switch (i) {
                     case 0:
-                        temp = AesUtils.encrypt(s);
-                        break;
-                    case 1:
                         temp = AesUtils.encrypt(s, key);
                         break;
-                    case 2:
-                        temp = AesUtils.encrypt(s, iv);
-                        break;
-                    case 3:
+                    case 1:
                         temp = AesUtils.encrypt(s, key, iv);
                         break;
                 }
@@ -89,15 +83,9 @@ public class AesTest {
                 String temp = null;
                 switch (i) {
                     case 0:
-                        temp = AesUtils.decrypt(s);
-                        break;
-                    case 1:
                         temp = AesUtils.decrypt(s, key);
                         break;
-                    case 2:
-                        temp = AesUtils.decrypt(s, iv);
-                        break;
-                    case 3:
+                    case 1:
                         temp = AesUtils.decrypt(s, key, iv);
                         break;
                 }
@@ -113,9 +101,7 @@ public class AesTest {
 
         }
 
-
         System.out.println("key = " + key);
-
 
     }
 

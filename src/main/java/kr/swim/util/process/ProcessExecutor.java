@@ -19,13 +19,64 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProcessExecutor {
 
+    /**
+     * RUN just input command
+     *
+     * @param command exec command
+     * @return stdout as single String
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public static String runSimpleCommand(String command) throws IOException, InterruptedException {
         String[] arr = {command};
         return runSimpleCommand(arr);
     }
 
+    /**
+     * <PRE>
+     * RUN input command
+     * (prefix :  sh -c )
+     * </PRE>
+     *
+     * @param command exec command
+     * @return stdout as single String
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public static String runSimpleCommandShell(String command) throws IOException, InterruptedException {
+        String[] arr = {"sh", "-c", command};
+        return runSimpleCommand(arr);
+    }
+
+    /**
+     * <PRE>
+     * RUN just input command
+     * </PRE>
+     *
+     * @param command exec command
+     * @return stdout as String List
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public static List<String> runCommand(String command) throws IOException, InterruptedException {
         String[] arr = {command};
+        return runCommand(arr);
+    }
+
+
+    /**
+     * <PRE>
+     * RUN input command
+     * (prefix :  sh -c )
+     * </PRE>
+     *
+     * @param command exec command
+     * @return stdout as String List
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public static List<String> runCommandShell(String command) throws IOException, InterruptedException {
+        String[] arr = {"sh", "-c", command};
         return runCommand(arr);
     }
 
@@ -53,8 +104,17 @@ public class ProcessExecutor {
         List<String> errorOutput = new ArrayList<>();
 
         try {
+            if (command == null || command.length == 0) {
+                throw new NullPointerException("exec command is null");
+            }
+
             log.debug("run command : " + new Gson().toJson(command));
-            process = Runtime.getRuntime().exec(command);
+
+            if (command.length == 1) {
+                process = Runtime.getRuntime().exec(command[0]);
+            } else {
+                process = Runtime.getRuntime().exec(command);
+            }
 
             if (process != null) {
 

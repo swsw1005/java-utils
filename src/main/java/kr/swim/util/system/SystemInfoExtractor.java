@@ -1,5 +1,6 @@
 package kr.swim.util.system;
 
+import com.google.gson.Gson;
 import kr.swim.util.process.ProcessExecutor;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -13,26 +14,167 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SystemInfoExtractor {
 
-    public static synchronized String getUptime() {
-        String line = "";
+    private static String uptimeProcessLine = "";
+    private static int uptimeUpIdx = -2;
+    private static int uptimeUserIdx = -2;
+    private static int uptimeLoadAvgIdx = -2;
+    private static long uptimeCheckTime = -2;
+
+    private static final long uptimeCheckInterval = 2000;
+
+    public static String getUptime() {
+        String uptimeLine = uptimeProcessResult();
+        String result = "";
         try {
-            return ProcessExecutor.runSimpleCommand("uptime");
-        } catch (IOException | InterruptedException e) {
+            String[] arr = uptimeLine.split(" ");
+
+            log.debug("uptime exec stdout => parse => " + new Gson().toJson(arr));
+
+            final int uptimeInterval = uptimeUserIdx - uptimeUpIdx;
+
+            if (uptimeInterval > 3) {
+
+                for (int i = 0; i < (uptimeInterval - 2); i++) {
+                    result += (arr[uptimeUpIdx + 1 + i] + " ");
+                }
+
+            } else {
+                result += (arr[uptimeUpIdx + 1]);
+            }
+            result = result.trim();
+
+            if (result.endsWith(",")) {
+                result = result.substring(0, result.length() - 1);
+            }
+
+        } catch (RuntimeException e) {
+            resetUptimeCheck();
             log.warn(e + " | " + e.getMessage());
         } catch (Exception e) {
-            log.warn(e + " | " + e.getMessage(), e);
+            resetUptimeCheck();
+            log.warn(e + " | " + e.getMessage());
         }
-        return line;
+        return result;
     }
+
+
+    public static int getUsers() {
+        String uptimeLine = uptimeProcessResult();
+        int user = -1;
+        try {
+            String[] arr = uptimeLine.split(" ");
+
+            log.debug("uptime exec stdout => parse => " + new Gson().toJson(arr));
+
+            return Integer.parseInt(arr[uptimeUserIdx - 1]);
+
+        } catch (RuntimeException e) {
+            resetUptimeCheck();
+            log.warn(e + " | " + e.getMessage());
+        } catch (Exception e) {
+            resetUptimeCheck();
+            log.warn(e + " | " + e.getMessage());
+        }
+        return user;
+    }
+
+    public static String getLoadAverage() {
+        String uptimeLine = uptimeProcessResult();
+        String result = "";
+        try {
+            String[] arr = uptimeLine.split(" ");
+
+            log.debug("uptime exec stdout => parse => " + new Gson().toJson(arr));
+
+            int idx = uptimeLoadAvgIdx;
+
+            String str = "";
+
+            for (int i = 0; i < 3; i++) {
+                idx++;
+                str += arr[idx];
+            }
+            return str;
+
+        } catch (RuntimeException e) {
+            resetUptimeCheck();
+            log.warn(e + " | " + e.getMessage());
+        } catch (Exception e) {
+            resetUptimeCheck();
+            log.warn(e + " | " + e.getMessage());
+        }
+        return result;
+    }
+
+    private static final void resetUptimeCheck() {
+        uptimeProcessLine = "";
+        uptimeUpIdx = -2;
+        uptimeUserIdx = -2;
+        uptimeLoadAvgIdx = -2;
+        uptimeCheckTime = -2;
+    }
+
+
+    private static String uptimeProcessResult() {
+        final long now = System.currentTimeMillis();
+        final boolean old = (now - uptimeCheckTime) > uptimeCheckInterval;
+
+        log.debug("------------------------------------------------------------------------------");
+        log.debug("uptimeProcessLine = " + uptimeProcessLine);
+        log.debug("now = " + now + "  " + "uptimeCheckTime = " + uptimeCheckTime + "  " + "old = " + old);
+        log.debug("uptimeUpIdx = " + uptimeUpIdx + "  " + "uptimeUserIdx = " + uptimeUserIdx + "  " + "uptimeLoadAvgIdx = " + uptimeLoadAvgIdx);
+
+        if (old) {
+            uptimeCheckTime = now;
+            String line = "";
+            try {
+                line = ProcessExecutor.runSimpleCommand("uptime");
+
+                log.debug("new uptimeProcessLine = " + uptimeProcessLine);
+
+            } catch (IOException | InterruptedException e) {
+                log.warn(e + " | " + e.getMessage());
+            } catch (Exception e) {
+                log.warn(e + " | " + e.getMessage(), e);
+            }
+
+            if (line.length() > 4) {
+                line = line.replace("   ", " ");
+                line = line.replace("  ", " ");
+                line = line.replace("  ", " ");
+                line = line.replace("load average", "loadaverage");
+            }
+            uptimeProcessLine = line;
+        }
+
+        uptimeProcessLine = uptimeProcessLine.trim();
+
+        String[] arr = uptimeProcessLine.split(" ");
+
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i].toLowerCase().contains("up")) {
+                uptimeUpIdx = i;
+                continue;
+            }
+            if (arr[i].toLowerCase().contains("users")) {
+                uptimeUserIdx = i;
+                continue;
+            }
+            if (arr[i].toLowerCase().contains("loadaverage")) {
+                uptimeLoadAvgIdx = i;
+                continue;
+            }
+        }
+
+        return uptimeProcessLine;
+    }
+
 
     public static String getLocalIpAddress() {
         String ip = null;
@@ -88,7 +230,7 @@ public class SystemInfoExtractor {
      * 파일시스템 정보를 얻는다
      *
      * @return <PRE>
-     *     List&lt;FileSystemInfo&gt;
+     * List&lt;FileSystemInfo&gt;
      * {@link FileSystemInfo}
      * </PRE>
      */
@@ -147,11 +289,30 @@ public class SystemInfoExtractor {
                     if (line.startsWith("cpu MHz")) {
                         cpuinfo.setCpuMhz(getValue(line));
                     }
+                    if (line.startsWith("cpu cores")) {
+                        cpuinfo.setCore(Integer.parseInt(getValue(line)));
+                    }
                     if (line.startsWith("cache size")) {
                         cpuinfo.setCpuCache(getValue(line));
                         cpuList.add(cpuinfo);
                     }
                 }
+
+                Map<Integer, CpuInfo> cpuSet = new HashMap<>();
+
+                for (CpuInfo cpuInfo : cpuList) {
+
+                    final int hashKey = cpuInfo.hashCode();
+                    if (cpuSet.containsKey(hashKey)) {
+                        cpuSet.get(hashKey).setThread(cpuSet.get(hashKey).getThread() + 1);
+                    } else {
+                        cpuSet.put(hashKey, cpuInfo);
+                    }
+                }
+                cpuList.clear();
+
+                cpuList = new ArrayList<>(cpuSet.values());
+
             } catch (NullPointerException e) {
                 log.warn(e + "  " + e.getMessage());
             } catch (Exception e) {
@@ -173,5 +334,6 @@ public class SystemInfoExtractor {
         }
         return "";
     }
+
 
 }

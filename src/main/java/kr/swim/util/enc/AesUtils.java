@@ -23,8 +23,6 @@ import java.security.spec.AlgorithmParameterSpec;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AesUtils {
 
-    protected static final String ENC_KEY = "b00fbYHa07K7444K87e63B23135ED9c113b07380d757774aER8d8ac73a98hla382";
-
     protected static final String AES_CBC_PKCS_5_PADDING = "AES/CBC/PKCS5Padding";
 
     protected static final String AES = "AES";
@@ -32,26 +30,6 @@ public class AesUtils {
     protected static final String UTF_8 = String.valueOf(StandardCharsets.UTF_8);
 
     private static final boolean isDebug = log.isDebugEnabled();
-
-    private static byte[] ivBytes = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-    /**
-     * <PRE>
-     * AES256 암호화
-     * 기본 key 사용
-     * iv from key 사용
-     * </PRE>
-     *
-     * @param str 암호화 대상 문자열
-     * @return 암호화된 String
-     * @throws EncodingException
-     */
-    public static String encrypt(String str) throws EncodingException {
-        if (isDebug) {
-            log.debug("encrypt | str ");
-        }
-        return encrypt(str, ENC_KEY);
-    }
 
     /**
      * <PRE>
@@ -68,25 +46,7 @@ public class AesUtils {
         if (isDebug) {
             log.debug("encrypt | str | key");
         }
-        return encrypt(str, key, ivBytes);
-    }
-
-    /**
-     * <PRE>
-     * AES256 암호화
-     * 기본 key 사용
-     * </PRE>
-     *
-     * @param str 암호화 대상 문자열
-     * @param iv  byte[16] 암호화 iv
-     * @return 암호화된 String
-     * @throws EncodingException
-     */
-    public static String encrypt(String str, final byte[] iv) throws EncodingException {
-        if (isDebug) {
-            log.debug("encrypt | str | iv");
-        }
-        return encrypt(str, ENC_KEY, iv);
+        return encrypt(str, key, generateIvFromString(key));
     }
 
     /**
@@ -125,24 +85,6 @@ public class AesUtils {
     }
 
 
-    /**
-     * <PRE>
-     * AES256 복호화
-     * 기본 key 사용
-     * iv from key 사용
-     * </PRE>
-     *
-     * @param str 복호화 대상 문자열
-     * @return
-     * @throws EncodingException
-     */
-    public static String decrypt(String str) throws EncodingException {
-        if (isDebug) {
-            log.debug("decrypt | str");
-        }
-        return decrypt(str, ENC_KEY);
-    }
-
 
     /**
      * <PRE>
@@ -159,26 +101,7 @@ public class AesUtils {
         if (isDebug) {
             log.debug("decrypt | str | key");
         }
-        return decrypt(str, key, ivBytes);
-    }
-
-
-    /**
-     * <PRE>
-     * AES256 복호화
-     * 기본 key 사용
-     * </PRE>
-     *
-     * @param str 복호화 대상 문자열
-     * @param iv  byte[16] 복호화 iv
-     * @return
-     * @throws EncodingException
-     */
-    public static String decrypt(String str, final byte[] iv) throws EncodingException {
-        if (isDebug) {
-            log.debug("decrypt | str | iv");
-        }
-        return decrypt(str, ENC_KEY, iv);
+        return decrypt(str, key, generateIvFromString(key));
     }
 
     /**
