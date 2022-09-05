@@ -1,29 +1,48 @@
 package kr.swim.util.system;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import kr.swim.util.io.CloseResourceHelper;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
+import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-@Slf4j
-public class PublicIpInfo extends RetryIntervalUtils {
+@Getter
+@Setter
+public class NetworkIpInfo extends RetryIntervalUtils {
 
-    public static final String CHECK_IP_ADDRESS = "https://domains.google.com/checkip";
+    private static final Logger log = LoggerFactory.getLogger(NetworkIpInfo.class);
 
-    public static final Pattern IP_PATTERN = Pattern.compile("\\b(?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9]))\\b");
+    private String ip = "";
+    private String city;
+    private String region;
+    private String country;
+    private String loc;
+    private String org;
+    private String timezone;
+    private String postal;
 
-    private static String ipCache = "";
 
-    public static final String getPublicIp() {
+    private NetworkIpInfo() {
+    }
 
-        if (!isOldMinute(1) && ipCache == null && ipCache.length() > 5) {
-            return ipCache;
+    private static class SingleTone {
+        public static final NetworkIpInfo INSTANCE = new NetworkIpInfo();
+    }
+
+    public static NetworkIpInfo getInstance() {
+
+        if (!isOldMinute(60) && SingleTone.INSTANCE.getIp() == null && SingleTone.INSTANCE.getIp().length() > 5) {
+            return SingleTone.INSTANCE;
         }
+
+        String IP_GET_URL = "http://ipinfo.io";
 
         URL url = null;
         String readLine = null;
@@ -34,14 +53,14 @@ public class PublicIpInfo extends RetryIntervalUtils {
         int connTimeout = 5000;
         int readTimeout = 3000;
         try {
-            url = new URL(CHECK_IP_ADDRESS);
+            url = new URL(IP_GET_URL);
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
             urlConnection.setConnectTimeout(connTimeout);
             urlConnection.setReadTimeout(readTimeout);
             urlConnection.setRequestProperty("Accept", "application/json;");
 
-            log.debug("connect to => " + CHECK_IP_ADDRESS);
+            log.debug("connect to => " + IP_GET_URL);
 
             if (urlConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
 
@@ -69,18 +88,23 @@ public class PublicIpInfo extends RetryIntervalUtils {
                 log.error(e + "  " + e.getMessage());
             }
         }
-        final String rawIp = buffer.toString();
 
-        Matcher matcher = IP_PATTERN.matcher(rawIp);
+        final String body = buffer.toString();
 
-        boolean found = matcher.find();
+        log.debug("ip body == " + body);
 
-        if (found) {
-            ipCache = rawIp.substring(matcher.start(), matcher.end());
-        }
-        return ipCache;
+        JsonObject jsonObject = JsonParser.parseString(body).getAsJsonObject();
 
+        SingleTone.INSTANCE.setIp(jsonObject.get("ip").getAsString());
+        SingleTone.INSTANCE.setCity(jsonObject.get("city").getAsString());
+        SingleTone.INSTANCE.setRegion(jsonObject.get("region").getAsString());
+        SingleTone.INSTANCE.setCountry(jsonObject.get("country").getAsString());
+        SingleTone.INSTANCE.setLoc(jsonObject.get("loc").getAsString());
+        SingleTone.INSTANCE.setOrg(jsonObject.get("org").getAsString());
+        SingleTone.INSTANCE.setTimezone(jsonObject.get("timezone").getAsString());
+        SingleTone.INSTANCE.setPostal(jsonObject.get("postal").getAsString());
+
+        return SingleTone.INSTANCE;
     }
-
 
 }
